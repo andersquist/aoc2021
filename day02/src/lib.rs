@@ -15,9 +15,8 @@ enum Command {
 pub fn part1(input: &Path) -> Result<(), Error> {
     use Command::*;
 
-    let commands = parse::<Command>(input)?;
     let (depth, horizontal) =
-        commands.fold((0u32, 0u32), |(depth, horizontal), command| match command {
+        parse::<Command>(input)?.fold((0u32, 0u32), |(depth, horizontal), command| match command {
             Forward(amount) => (depth, horizontal + amount),
             Up(amount) => (depth - amount, horizontal),
             Down(amount) => (depth + amount, horizontal),
@@ -29,15 +28,14 @@ pub fn part1(input: &Path) -> Result<(), Error> {
 pub fn part2(input: &Path) -> Result<(), Error> {
     use Command::*;
 
-    let commands = parse::<Command>(input)?;
-    let (depth, horizontal, _) = commands.fold(
-        (0u32, 0u32, 0u32),
-        |(depth, horizontal, aim), command| match command {
-            Forward(amount) => (depth + (aim * amount), horizontal + amount, aim),
-            Up(amount) => (depth, horizontal, aim - amount),
-            Down(amount) => (depth, horizontal, aim + amount),
-        },
-    );
+    let (depth, horizontal, _) =
+        parse::<Command>(input)?.fold((0u32, 0u32, 0u32), |(depth, horizontal, aim), command| {
+            match command {
+                Forward(amount) => (depth + (aim * amount), horizontal + amount, aim),
+                Up(amount) => (depth, horizontal, aim - amount),
+                Down(amount) => (depth, horizontal, aim + amount),
+            }
+        });
     println!("{}", depth * horizontal);
     Ok(())
 }
