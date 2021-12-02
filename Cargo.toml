@@ -18,4 +18,4 @@ tinytemplate = "1.2.1"
 toml_edit = "0.10.0"
 
 [workspace]
-members = ["day01"]
+members = ["day01", "day02"]
