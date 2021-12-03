@@ -3,12 +3,10 @@ use std::path::Path;
 use thiserror::Error;
 
 #[derive(parse_display::Display, parse_display::FromStr)]
+#[display("{} {0}", style = "lowercase")]
 enum Command {
-    #[display("forward {0}")]
     Forward(u32),
-    #[display("up {0}")]
     Up(u32),
-    #[display("down {0}")]
     Down(u32),
 }
 
