@@ -12,7 +12,6 @@ impl Map {
         let mut coords: HashMap<Point, usize> = HashMap::new();
         for line in lines.iter() {
             line.get_points()
-                .iter()
                 .for_each(|p| *coords.entry(p.to_owned()).or_insert(0) += 1);
         }
         Self { coords }
@@ -44,26 +43,22 @@ struct Line {
 }
 
 impl Line {
-    fn get_points(&self) -> Vec<Point> {
-        let mut points = Vec::new();
-        let mut x = self.start.x;
-        let mut y = self.start.y;
+    fn get_points<'a>(&'a self) -> impl 'a + Iterator<Item = Point> {
         let x_step = get_step(self.start.x, self.end.x);
         let y_step = get_step(self.start.y, self.end.y);
-        loop {
-            points.push(Point { x, y });
-            x += x_step;
-            y += y_step;
 
-            if (y_step < 0 && y < self.end.y)
-                || (y_step > 0 && y > self.end.y)
-                || (x_step < 0 && x < self.end.x)
-                || (x_step > 0 && x > self.end.x)
-            {
-                break;
+        let start = self.start.clone();
+        std::iter::successors(Some(start), move |prev| {
+            if *prev == self.end {
+                None
+            } else {
+                let mut next = prev.clone();
+                next.x += x_step;
+                next.y += y_step;
+                Some(next)
             }
-        }
-        points
+        })
+        .fuse()
     }
 
     #[inline]
@@ -134,7 +129,7 @@ mod test {
             end: Point { x: 8, y: 0 },
         };
         assert_eq!(
-            line1.get_points(),
+            line1.get_points().collect::<Vec<Point>>(),
             [
                 Point { x: 0, y: 9 },
                 Point { x: 1, y: 9 },
@@ -142,7 +137,7 @@ mod test {
             ]
         );
         assert_eq!(
-            line2.get_points(),
+            line2.get_points().collect::<Vec<Point>>(),
             [
                 Point { x: 0, y: 8 },
                 Point { x: 1, y: 7 },
