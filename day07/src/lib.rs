@@ -20,7 +20,7 @@ fn calculate_lowest_fuel(data: &str, fuel_calc: impl Fn(i32, i32) -> i32) -> Res
         .collect();
     let min = crabs.iter().min().expect("no min");
     let max = crabs.iter().max().expect("no max");
-    Ok((*min..=*max)
+    (*min..=*max)
         .map(|pos| {
             crabs
                 .iter()
@@ -29,7 +29,7 @@ fn calculate_lowest_fuel(data: &str, fuel_calc: impl Fn(i32, i32) -> i32) -> Res
                 .sum::<i32>()
         })
         .min()
-        .expect("no solution found"))
+        .ok_or(Error::NoSolution)
 }
 
 pub fn part1(input: &Path) -> Result<(), Error> {
@@ -52,6 +52,8 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error(transparent)]
     ParseError(#[from] ParseIntError),
+    #[error("no solution found")]
+    NoSolution,
 }
 
 #[cfg(test)]
