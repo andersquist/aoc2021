@@ -1,24 +1,26 @@
 use aoc2021::input::{parse_newline, Separated};
 
-use std::{collections::HashMap, path::Path, str::FromStr};
+use std::{collections::HashMap, num::ParseIntError, path::Path, str::FromStr};
 use thiserror::Error;
 
 fn calculate_fish(data: &str, days: u32) -> Result<usize, Error> {
-    let mut school: HashMap<u8, usize> = HashMap::new();
-    <Separated<u8>>::from_str(data.trim())
-        .expect("failed to parse comma seperated numbers")
-        .into_iter()
-        .for_each(|v| *school.entry(v).or_insert(0) += 1);
+    let school: HashMap<u8, usize> = <Separated<u8>>::from_str(data.trim())?.into_iter().fold(
+        HashMap::new(),
+        |mut school, v| {
+            *school.entry(v).or_insert(0) += 1;
+            school
+        },
+    );
 
-    for _ in 0..days {
-        school = iterate(&school);
-    }
-    Ok(school.into_iter().map(|(_, v)| v).sum())
+    Ok((0..days)
+        .fold(school, |school, _| iterate(&school))
+        .into_iter()
+        .map(|(_, v)| v)
+        .sum::<usize>())
 }
 
 fn iterate(school: &HashMap<u8, usize>) -> HashMap<u8, usize> {
-    let mut new_school: HashMap<u8, usize> = HashMap::new();
-    for gen in (0..=8).rev() {
+    (0..=8).rev().fold(HashMap::new(), |mut new_school, gen| {
         let count = school.get(&gen).unwrap_or(&0_usize);
         if gen == 0 {
             *new_school.entry(6).or_insert(0) += count;
@@ -26,8 +28,8 @@ fn iterate(school: &HashMap<u8, usize>) -> HashMap<u8, usize> {
         } else {
             *new_school.entry(gen - 1).or_insert(0) += count;
         }
-    }
-    new_school
+        new_school
+    })
 }
 
 pub fn part1(input: &Path) -> Result<(), Error> {
@@ -48,6 +50,8 @@ pub fn part2(input: &Path) -> Result<(), Error> {
 pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
+    #[error(transparent)]
+    ParseError(#[from] ParseIntError),
 }
 
 #[cfg(test)]
